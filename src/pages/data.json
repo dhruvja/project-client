@@ -1,0 +1,25 @@
+{
+  "projects": [
+    {
+      "id": "1fadb887-c400-4d3e-8daf-dbfe11c58c31",
+      "transfers": [
+        { "id": "9633ef27-9065-4a89-8582-b6536d465030" },
+        { "id": "6ed14f64-a566-49c7-a94f-79fd92c05fdh" }
+      ]
+    },
+    {
+      "id": "1fadb887-c400-4d3e-83af-dbfe11c58c31",
+      "transfers": [
+        { "id": "9633ef27-9065-4g89-8582-b6536d465030" },
+        { "id": "6ed14f64-a566-4sc7-a94f-79fd92c05fdh" }
+      ]
+    },
+    {
+      "id": "19d6945c-872a-4f33-b34d-f160080821cd",
+      "transfers": [
+        { "id": "1bf154e9-9e67-4aa1-a09c-b6e5c24b7bbf" },
+        { "id": "bc2cf259-a97c-4be1-90b2-cdb36196dfaa" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "version": "0.1.0",
+  "name": "transfer",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "generalAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "projectPoolWallet",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "walletToWithdrawFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "generalProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "transferId",
+          "type": "string"
+        },
+        {
+          "name": "generalBump",
+          "type": "u8"
+        },
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u32"
+        },
+        {
+          "name": "receiver",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "updateState",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "transferId",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "signTransfer",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "projectAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "generalAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "projectPoolWallet",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "walletToWithdrawFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "generalProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "projectProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "generalBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectBump",
+          "type": "u8"
+        },
+        {
+          "name": "poolBump",
+          "type": "u8"
+        },
+        {
+          "name": "transferId",
+          "type": "string"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "TransferParameter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "amount",
+            "type": "u32"
+          },
+          {
+            "name": "signers",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "receiver",
+            "type": "publicKey"
+          },
+          {
+            "name": "state",
+            "type": "bool"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidSigner",
+      "msg": "Invalid Signer"
+    },
+    {
+      "code": 6001,
+      "name": "NoProposalCreated",
+      "msg": "There is no proposal to sign"
+    },
+    {
+      "code": 6002,
+      "name": "RepeatedSignature",
+      "msg": "You have already signed"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidReciever",
+      "msg": "Wrong account of reciever is passed"
+    }
+  ],
+  "metadata": {
+    "address": "F5s5fXeXWgWf8L42NerMVxRHUwWsQhgM5tguedzvNwjC"
+  }
+}

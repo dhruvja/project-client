@@ -1,0 +1,397 @@
+{
+  "version": "0.1.0",
+  "name": "project",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "projectId",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "addInitialSignatories",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        },
+        {
+          "name": "signatures",
+          "type": {
+            "vec": "publicKey"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "u32"
+        },
+        {
+          "name": "timeLimit",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "addNewSignatoryProposal",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        },
+        {
+          "name": "signatory",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "removeSignatoryProposal",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        },
+        {
+          "name": "signatory",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "changeThresholdProposal",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        },
+        {
+          "name": "threshold",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "signProposal",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "fallBack",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ProjectParameter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "signatories",
+            "type": {
+              "vec": {
+                "defined": "Signature"
+              }
+            }
+          },
+          {
+            "name": "add",
+            "type": {
+              "defined": "AddSignatory"
+            }
+          },
+          {
+            "name": "delete",
+            "type": {
+              "defined": "DeleteSignatory"
+            }
+          },
+          {
+            "name": "changeThreshold",
+            "type": {
+              "defined": "ChangeThreshold"
+            }
+          },
+          {
+            "name": "threshold",
+            "type": "u32"
+          },
+          {
+            "name": "timeLimit",
+            "type": "u32"
+          },
+          {
+            "name": "lastTx",
+            "type": "i32"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "Signature",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "key",
+            "type": "publicKey"
+          },
+          {
+            "name": "add",
+            "type": "bool"
+          },
+          {
+            "name": "delete",
+            "type": "bool"
+          },
+          {
+            "name": "changeThreshold",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AddSignatory",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "type": "bool"
+          },
+          {
+            "name": "newSignatory",
+            "type": "publicKey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "votes",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeleteSignatory",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "type": "bool"
+          },
+          {
+            "name": "oldSignatory",
+            "type": "publicKey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "votes",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChangeThreshold",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "type": "bool"
+          },
+          {
+            "name": "newThreshold",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "votes",
+            "type": "u32"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidSigner",
+      "msg": "Invalid Signer"
+    },
+    {
+      "code": 6001,
+      "name": "RepeatedSignature",
+      "msg": "You have already signed"
+    },
+    {
+      "code": 6002,
+      "name": "NoProposalCreated",
+      "msg": "There is no proposal to sign"
+    },
+    {
+      "code": 6003,
+      "name": "ProposalInProgress",
+      "msg": "There is already a proposal in progress"
+    },
+    {
+      "code": 6004,
+      "name": "SignatoryNotFound",
+      "msg": "This signatory does not exist"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidTimePeriod",
+      "msg": "The project is still alive"
+    }
+  ],
+  "metadata": {
+    "address": "45GpJwQe42EXn8EQoyBnp5dU51h2BWrkv8ASmGKERpKD"
+  }
+}
