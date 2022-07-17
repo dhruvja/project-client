@@ -707,6 +707,17 @@ function Stake() {
                 onChange={handleChange}
               />
             </Form.Field>
+            {loading ? (
+              <Button loading>
+                Create new Transfer proposal
+              </Button>
+            ) : (
+              <Button onClick={createAddSignatory}>
+                Create new Transfer proposal
+              </Button>
+            )}
+            <Button onClick={sign} primary>Sign for changing Transfer</Button>
+            <br /><br />
             <Message color="teal">
               <Message.Header>Total Tokens: {totalTokens} </Message.Header>
             </Message>
