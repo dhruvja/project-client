@@ -21,7 +21,6 @@ import { Redirect } from "react-router-dom";
 import kp from "./keypair.json";
 import general from "./idl/general.json";
 import project from "./idl/project.json";
-import transfer from "./idl/transfer.json";
 import {
   Connection,
   PublicKey,
@@ -49,7 +48,6 @@ const baseAccount = web3.Keypair.fromSecretKey(secret);
 // Get our program's id from the IDL file.
 const generalProgramID = new PublicKey(general.metadata.address);
 const projectProgramID = new PublicKey(project.metadata.address);
-const transferProgramID = new PublicKey(transfer.metadata.address);
 
 // Set our network to devnet.
 const network = clusterApiUrl("devnet");
@@ -62,11 +60,6 @@ const opts = {
 const connection = new Connection(network, opts.preflightCommitment);
 
 const options = [
-  {
-    key: "alice",
-    text: "alice",
-    value: "FUMWGS2GkQcaUsYHCQVa41wxJCYMYf28yeox2joChmT4",
-  },
   {
     key: "bob",
     text: "bob",
@@ -84,6 +77,24 @@ const options = [
   },
 ];
 
+const newSigs = [
+  {
+    key: "wallet 1",
+    text: "wallet 1",
+    value: "AGdZqUDzmXZYMkmv17d2MevwsNyNYkLjUsbq19eZcawg",
+  },
+  {
+    key: "wallet 2",
+    text: "wallet 2",
+    value: "E5YMfUvCghB6Ynjx1kAREceoUdGn4SjATp9ohzKwua6J",
+  },
+  {
+    key: "wallet 3",
+    text: "wallet 3",
+    value: "4nBkhiwMHrgBeeWrEH85rquhBZMUatmTjgcAkmJUcjoK",
+  },
+]
+
 function Stake() {
   const [quizzes, setQuizzes] = useState([]);
   const [wallet, setWallet] = useState(null);
@@ -100,6 +111,8 @@ function Stake() {
   });
   const [totalTokens, setTotalTokens] = useState(0);
   const [initialSignatories, setInitialSignatories] = useState([]);
+  const [newSignatories, setNewSignatories] = useState([]);
+  const [oldSignatories, setOldSignatories] = useState([]);
   const [threshold, setThreshold] = useState(0);
   const [signatory, setSignatory] = useState(null);
   const [votersPresent, setVoterPresent] = useState(false);
@@ -461,248 +474,13 @@ function Stake() {
     setLoading(false);
   };
 
-  const createTransfer = async () => {
+  const getDetails = async (jobId) => {
     const provider = getProvider();
     const projectProgram = new Program(project, projectProgramID, provider);
-    const generalProgram = new Program(general, generalProgramID, provider);
-    const transferProgram = new Program(transfer, transferProgramID, provider);
 
-    const transferId = selectedTransfer;
-    const projectId = selectedProject;
-
-    const [transferPDA, transferBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("transfer"),
-          Buffer.from(transferId.substring(0, 18)),
-          Buffer.from(transferId.substring(18, 36)),
-        ],
-        transferProgram.programId
-      );
-
-    const [projectPDA, projectBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("project"),
-          Buffer.from(projectId.substring(0, 18)),
-          Buffer.from(projectId.substring(18, 36)),
-        ],
-        projectProgram.programId
-      );
-
-    const [generalPDA, generalBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from("general")],
-        generalProgram.programId
-      );
-
-    const [projectPoolWalletPDA, projectPoolWalletBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("pool"),
-          Buffer.from(transferId.substring(0, 18)),
-          Buffer.from(transferId.substring(18, 36)),
-        ],
-        transferProgram.programId
-      );
-
-    const USDCMint = new PublicKey(tokenMint);
-    const reciever = new PublicKey(formValues.reciever);
-
-    let userTokenAccount = await spl.getAssociatedTokenAddress(
-      USDCMint,
-      wallet,
-      false,
-      spl.TOKEN_PROGRAM_ID,
-      spl.ASSOCIATED_TOKEN_PROGRAM_ID
-    );
-
-    let recieverTokenAccount = await spl.getAssociatedTokenAddress(
-      USDCMint,
-      reciever,
-      false,
-      spl.TOKEN_PROGRAM_ID,
-      spl.ASSOCIATED_TOKEN_PROGRAM_ID
-    );
-
-    try {
-      const tx = await transferProgram.methods
-        .initialize(
-          transferId,
-          generalBump,
-          transferBump,
-          new anchor.BN(formValues.depositTokens),
-          recieverTokenAccount
-        )
-        .accounts({
-          baseAccount: transferPDA,
-          generalAccount: generalPDA,
-          projectPoolWallet: projectPoolWalletPDA,
-          tokenMint: USDCMint,
-          authority: wallet,
-          walletToWithdrawFrom: userTokenAccount,
-          generalProgram: generalProgram.programId,
-          systemProgram: anchor.web3.SystemProgram.programId,
-          tokenProgram: spl.TOKEN_PROGRAM_ID,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        })
-        .rpc();
-      console.log(tx);
-      await getBalance(wallet);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const updateTransfer = async () => {
-    const provider = getProvider();
-
-    const transferProgram = new Program(transfer, transferProgramID, provider);
-
-    const transferId = selectedTransfer;
-
-    const [transferPDA, transferBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("transfer"),
-          Buffer.from(transferId.substring(0, 18)),
-          Buffer.from(transferId.substring(18, 36)),
-        ],
-        transferProgram.programId
-      );
-
-    try {
-      const tx = await transferProgram.methods
-        .updateState(transferBump, transferId)
-        .accounts({
-          baseAccount: transferPDA,
-          authority: wallet,
-        })
-        .rpc();
-
-      console.log(tx);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const signTransfer = async () => {
-    const provider = getProvider();
-    const projectProgram = new Program(project, projectProgramID, provider);
-    const generalProgram = new Program(general, generalProgramID, provider);
-    const transferProgram = new Program(transfer, transferProgramID, provider);
-
-    const transferId = selectedTransfer;
-    const projectId = selectedProject;
-
-    const [transferPDA, transferBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("transfer"),
-          Buffer.from(transferId.substring(0, 18)),
-          Buffer.from(transferId.substring(18, 36)),
-        ],
-        transferProgram.programId
-      );
-
-    const [projectPDA, projectBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("project"),
-          Buffer.from(projectId.substring(0, 18)),
-          Buffer.from(projectId.substring(18, 36)),
-        ],
-        projectProgram.programId
-      );
-
-    const [generalPDA, generalBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from("general")],
-        generalProgram.programId
-      );
-
-    const [projectPoolWalletPDA, projectPoolWalletBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("pool"),
-          Buffer.from(transferId.substring(0, 18)),
-          Buffer.from(transferId.substring(18, 36)),
-        ],
-        transferProgram.programId
-      );
-
-    const USDCMint = new PublicKey(tokenMint);
-    const reciever = new PublicKey(formValues.reciever);
-
-    let userTokenAccount = await spl.getAssociatedTokenAddress(
-      USDCMint,
-      wallet,
-      false,
-      spl.TOKEN_PROGRAM_ID,
-      spl.ASSOCIATED_TOKEN_PROGRAM_ID
-    );
-
-    let recieverTokenAccount = await spl.getAssociatedTokenAddress(
-      USDCMint,
-      reciever,
-      false,
-      spl.TOKEN_PROGRAM_ID,
-      spl.ASSOCIATED_TOKEN_PROGRAM_ID
-    );
-
-    try {
-      const tx = await transferProgram.methods
-        .signTransfer(
-          transferBump,
-          generalBump,
-          projectBump,
-          projectPoolWalletBump,
-          transferId,
-          projectId
-        )
-        .accounts({
-          baseAccount: transferPDA,
-          projectAccount: projectPDA,
-          generalAccount: generalPDA,
-          projectPoolWallet: projectPoolWalletPDA,
-          tokenMint: USDCMint,
-          authority: wallet,
-          walletToWithdrawFrom: recieverTokenAccount,
-          generalProgram: generalProgram.programId,
-          projectProgram: projectProgram.programId,
-          systemProgram: anchor.web3.SystemProgram.programId,
-          tokenProgram: spl.TOKEN_PROGRAM_ID,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        })
-        .rpc();
-
-      console.log(tx);
-
-      await getBalance(wallet);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const getDetails = async (appId, jobId) => {
-    const provider = getProvider();
-    const transferProgram = new Program(transfer, transferProgramID, provider);
-    const projectProgram = new Program(project, projectProgramID, provider);
-
-    const transferId = appId;
     const projectId = jobId;
 
-    console.log(transferId, projectId);
-
-    const [transferPDA, transferBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("transfer"),
-          Buffer.from(transferId.substring(0, 18)),
-          Buffer.from(transferId.substring(18, 36)),
-        ],
-        transferProgram.programId
-      );
+    console.log(projectId);
 
     const [projectPDA, projectBump] =
       await anchor.web3.PublicKey.findProgramAddress(
@@ -726,28 +504,15 @@ function Stake() {
       setJobError(false);
       console.log(error);
     }
-
-    if (projects) {
-      try {
-        const state = await transferProgram.account.transferParameter.fetch(
-          transferPDA
-        );
-        setApplicationError(true);
-      } catch (error) {
-        setApplicationError(false);
-        console.log(error);
-      }
-    }
   };
 
-  const selectApplication = async (applicationId, jobId) => {
-    setSelectedTransfer(applicationId);
+  const selectApplication = async (jobId) => {
     setSelectedProject(jobId);
     setSelectedPresent(true);
-    await getDetails(applicationId, jobId);
+    await getDetails(jobId);
     await getVoters(jobId);
 
-    console.log(applicationId, jobId);
+    console.log(jobId);
   };
 
   return (
@@ -814,25 +579,93 @@ function Stake() {
                 Add Initial Signatories
               </Button>
             )}
+            <br /><br />
             <Form.Field>
-              <label>Add a signatory</label>
-              <input
-                placeholder="add a signatory"
-                name="addSignatory"
-                value={signatory}
-                onChange={(e) => setSignatory(e.target.value)}
+              <label>Add signatories</label>
+              <Dropdown
+                placeholder="New Signatories"
+                fluid
+                multiple
+                selection
+                options={newSigs}
+                onChange={(e, { value }) => setNewSignatories(value)}
               />
             </Form.Field>
             {loading ? (
               <Button loading>
-                Add Signatory
+                Add Signatories
               </Button>
             ) : (
               <Button onClick={createAddSignatory}>
-                Add Signatory
+                Add Signatories
               </Button>
             )}
             <Button onClick={sign} primary>Sign for adding</Button>
+            <br /><br />
+            <Form.Field>
+              <label>Remove signatories</label>
+              <Dropdown
+                placeholder="Old Signatories"
+                fluid
+                multiple
+                selection
+                options={newSigs}
+                onChange={(e, { value }) => setOldSignatories(value)}
+              />
+            </Form.Field>
+            {loading ? (
+              <Button loading>
+                Remove Signatories
+              </Button>
+            ) : (
+              <Button onClick={createAddSignatory}>
+                Remove Signatories
+              </Button>
+            )}
+            <Button onClick={sign} primary>Sign for removing</Button>
+            <br /><br />
+            <Form.Field>
+              <label>Change Threshold</label>
+              <input
+                placeholder="change threshold"
+                type="number"
+                name="newThreshold"
+                value={formValues.newThreshold}
+                onChange={handleChange}
+              />
+            </Form.Field>
+            {loading ? (
+              <Button loading>
+                Create new threshold proposal
+              </Button>
+            ) : (
+              <Button onClick={createAddSignatory}>
+                Create new threshold proposal
+              </Button>
+            )}
+            <Button onClick={sign} primary>Sign for changing threshold</Button>
+            <br /><br />
+            <Form.Field>
+              <label>Change Timeout</label>
+              <input
+                placeholder="change Timeout"
+                type="number"
+                name="newTimeout"
+                value={formValues.newTimeout}
+                onChange={handleChange}
+              />
+            </Form.Field>
+            {loading ? (
+              <Button loading>
+                Create new Timeout proposal
+              </Button>
+            ) : (
+              <Button onClick={createAddSignatory}>
+                Create new Timeout proposal
+              </Button>
+            )}
+            <Button onClick={sign} primary>Sign for changing Timeout</Button>
+            <br /><br />
             <Form.Field>
               <label>Enter amount of tokens to mint</label>
               <input
@@ -874,12 +707,6 @@ function Stake() {
                 onChange={handleChange}
               />
             </Form.Field>
-            <Button primary onClick={createTransfer}>
-              Create Transfer
-            </Button>
-            <Button primary onClick={signTransfer}>
-              Sign the transfer
-            </Button>
             <Message color="teal">
               <Message.Header>Total Tokens: {totalTokens} </Message.Header>
             </Message>
@@ -917,21 +744,11 @@ function Stake() {
             voters.map((val, index) => {
               return <p>{val.key.toBase58()}</p>;
             })}
-          <Header as="h2">Projects and Transfers</Header>
+          <Header as="h2">Projects</Header>
           {data.projects.map((project, index) => {
             return (
               <List ordered>
-                <List.Header as="h4">{project.id}</List.Header>
-                {project.transfers.map((transfer, indexs) => {
-                  return (
-                    <List.Item
-                      as="a"
-                      onClick={() => selectApplication(transfer.id, project.id)}
-                    >
-                      {transfer.id}
-                    </List.Item>
-                  );
-                })}
+                <List.Header as="a" onClick={() => selectApplication(project.id)} >{project.id}</List.Header>
               </List>
             );
           })}

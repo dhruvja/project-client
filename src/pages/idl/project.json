@@ -11,6 +11,16 @@
           "isSigner": false
         },
         {
+          "name": "projectPoolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
@@ -24,12 +34,26 @@
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
         {
           "name": "projectId",
           "type": "string"
+        },
+        {
+          "name": "percentTransfer",
+          "type": "u8"
         }
       ]
     },
@@ -40,6 +64,11 @@
           "name": "baseAccount",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
         }
       ],
       "args": [
@@ -92,7 +121,9 @@
         },
         {
           "name": "signatory",
-          "type": "publicKey"
+          "type": {
+            "vec": "publicKey"
+          }
         }
       ]
     },
@@ -121,7 +152,9 @@
         },
         {
           "name": "signatory",
-          "type": "publicKey"
+          "type": {
+            "vec": "publicKey"
+          }
         }
       ]
     },
@@ -151,6 +184,72 @@
         {
           "name": "threshold",
           "type": "u32"
+        },
+        {
+          "name": "currentTimestamp",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "changeTimeLimitProposal",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        },
+        {
+          "name": "timeLimit",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "transferAmountProposal",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "u32"
+        },
+        {
+          "name": "reciever",
+          "type": "publicKey"
         }
       ]
     },
@@ -184,6 +283,161 @@
       ]
     },
     {
+      "name": "depositFunds",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "generalAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "projectPoolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "walletToWithdrawFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "adminTokenWallet",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "generalProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "projectId",
+          "type": "string"
+        },
+        {
+          "name": "projectBump",
+          "type": "u8"
+        },
+        {
+          "name": "poolBump",
+          "type": "u8"
+        },
+        {
+          "name": "generalBump",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "signTransfer",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "generalAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "projectPoolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "walletToWithdrawFrom",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "generalProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "generalBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectBump",
+          "type": "u8"
+        },
+        {
+          "name": "poolBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "fallBack",
       "accounts": [
         {
@@ -205,6 +459,10 @@
         {
           "name": "projectId",
           "type": "string"
+        },
+        {
+          "name": "currentTime",
+          "type": "i32"
         }
       ]
     }
@@ -246,6 +504,18 @@
             }
           },
           {
+            "name": "changeTimeLimit",
+            "type": {
+              "defined": "ChangeTimeLimit"
+            }
+          },
+          {
+            "name": "transferAmount",
+            "type": {
+              "defined": "TransferAmount"
+            }
+          },
+          {
             "name": "threshold",
             "type": "u32"
           },
@@ -256,6 +526,26 @@
           {
             "name": "lastTx",
             "type": "i32"
+          },
+          {
+            "name": "stakedAmount",
+            "type": "u32"
+          },
+          {
+            "name": "percentTransfer",
+            "type": "u8"
+          },
+          {
+            "name": "shutdown",
+            "type": "bool"
+          },
+          {
+            "name": "lastReducedThreshold",
+            "type": "i32"
+          },
+          {
+            "name": "approval",
+            "type": "u32"
           }
         ]
       }
@@ -282,6 +572,14 @@
           {
             "name": "changeThreshold",
             "type": "bool"
+          },
+          {
+            "name": "changeTimeLimit",
+            "type": "bool"
+          },
+          {
+            "name": "transferAmount",
+            "type": "bool"
           }
         ]
       }
@@ -297,7 +595,9 @@
           },
           {
             "name": "newSignatory",
-            "type": "publicKey"
+            "type": {
+              "vec": "publicKey"
+            }
           },
           {
             "name": "timestamp",
@@ -321,7 +621,9 @@
           },
           {
             "name": "oldSignatory",
-            "type": "publicKey"
+            "type": {
+              "vec": "publicKey"
+            }
           },
           {
             "name": "timestamp",
@@ -346,6 +648,58 @@
           {
             "name": "newThreshold",
             "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "votes",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChangeTimeLimit",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "type": "bool"
+          },
+          {
+            "name": "newTimeLimit",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "votes",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TransferAmount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "type": "bool"
+          },
+          {
+            "name": "amount",
+            "type": "u32"
+          },
+          {
+            "name": "reciever",
+            "type": "publicKey"
           },
           {
             "name": "timestamp",
@@ -389,6 +743,31 @@
       "code": 6005,
       "name": "InvalidTimePeriod",
       "msg": "The project is still alive"
+    },
+    {
+      "code": 6006,
+      "name": "MinimumThresholdReached",
+      "msg": "The threshold is 1 which cannot be reduced further"
+    },
+    {
+      "code": 6007,
+      "name": "ShutDownCannotBeActivated",
+      "msg": "A minimum of 90 days from the last transaction should pass until the shut down can be activated"
+    },
+    {
+      "code": 6008,
+      "name": "MinimumTimeNotPassed",
+      "msg": "A minimum of 30 days has to be passed to further reduce the threshold"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidReciever",
+      "msg": "The reciever does not match"
+    },
+    {
+      "code": 6010,
+      "name": "CannotTransferDueToLowThreshold",
+      "msg": "The transfer cannot be completed if there is only 1 signatory, add more signatories and you can complete the transfer"
     }
   ],
   "metadata": {
