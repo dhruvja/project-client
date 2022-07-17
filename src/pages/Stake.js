@@ -15,6 +15,7 @@ import {
   Form,
   Message,
   Dropdown,
+  Accordion,
   Label,
 } from "semantic-ui-react";
 import { Redirect } from "react-router-dom";
@@ -93,7 +94,7 @@ const newSigs = [
     text: "wallet 3",
     value: "4nBkhiwMHrgBeeWrEH85rquhBZMUatmTjgcAkmJUcjoK",
   },
-]
+];
 
 function Stake() {
   const [quizzes, setQuizzes] = useState([]);
@@ -107,7 +108,10 @@ function Stake() {
   const [formValues, setFormValues] = useState({
     mintTokens: "",
     depositTokens: "",
+    transferTokens: "",
     reciever: "",
+    newThreshold: "",
+    newTimeout: "",
   });
   const [totalTokens, setTotalTokens] = useState(0);
   const [initialSignatories, setInitialSignatories] = useState([]);
@@ -122,6 +126,7 @@ function Stake() {
   const [selectedProject, setSelectedProject] = useState("");
   const [jobError, setJobError] = useState(true);
   const [applicationError, setApplicationError] = useState(true);
+  const [allData, setAllData] = useState({});
 
   // const {sendTransaction} = useWallet();
 
@@ -201,6 +206,7 @@ function Stake() {
     const state = await program.account.projectParameter.fetch(projectPDA);
 
     setVoters(state.signatories);
+    setAllData(state);
     setVoterPresent(true);
   };
 
@@ -286,7 +292,7 @@ function Stake() {
 
     const [generalPDA, generalBump] =
       await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from("general")],
+        [Buffer.from("general1")],
         program.programId
       );
 
@@ -311,6 +317,7 @@ function Stake() {
   const createProject = async () => {
     const provider = getProvider();
     const program = new Program(project, projectProgramID, provider);
+    const percentTransfer = 2;
 
     const projectId = selectedProject;
 
@@ -324,14 +331,30 @@ function Stake() {
         program.programId
       );
 
+    const [projectPoolPDA, projectPoolBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("pool"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        program.programId
+      );
+
+    const USDCMint = new PublicKey(tokenMint);
+
     try {
       const tx = await program.methods
-        .initialize(projectId)
+        .initialize(projectId, percentTransfer)
         .accounts({
           baseAccount: projectPDA,
+          projectPoolAccount: projectPoolPDA,
+          tokenMint: USDCMint,
           authority: wallet,
-          admin: options[3].value,
+          admin: options[2].value,
           systemProgram: anchor.web3.SystemProgram.programId,
+          tokenProgram: spl.TOKEN_PROGRAM_ID,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         })
         .rpc();
       console.log(tx);
@@ -360,7 +383,7 @@ function Stake() {
         program.programId
       );
 
-    const timeLimit = 100 * 60 * 60 * 24; // 1 day
+    const timeLimit = 60 * 60 * 24; // 1 day
 
     const thresholdInNumber = parseInt(threshold);
 
@@ -418,13 +441,17 @@ function Stake() {
         program.programId
       );
 
-    console.log(signatory);
+    let sigs = newSignatories;
 
-    const sig = new PublicKey(signatory);
+    for (let i = 0; i < newSignatories.length; i++) {
+      sigs[i] = new PublicKey(newSignatories[i]);
+    }
+
+    console.log(sigs);
 
     try {
       const tx = await program.methods
-        .addNewSignatoryProposal(projectBump, projectId, sig)
+        .addNewSignatoryProposal(projectBump, projectId, sigs)
         .accounts({
           baseAccount: projectPDA,
           authority: wallet,
@@ -439,7 +466,330 @@ function Stake() {
     setLoading(false);
   };
 
-  const sign = async () => {
+  const createDeleteSignatory = async () => {
+    setLoading(true);
+    const provider = getProvider();
+    const program = new Program(project, projectProgramID, provider);
+
+    const projectId = selectedProject;
+
+    const [projectPDA, projectBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("project"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        program.programId
+      );
+
+    let sigs = oldSignatories;
+
+    for (let i = 0; i < oldSignatories.length; i++) {
+      sigs[i] = new PublicKey(oldSignatories[i]);
+    }
+
+    console.log(sigs);
+
+    try {
+      const tx = await program.methods
+        .removeSignatoryProposal(projectBump, projectId, sigs)
+        .accounts({
+          baseAccount: projectPDA,
+          authority: wallet,
+        })
+        .rpc();
+
+      console.log(tx);
+    } catch (error) {
+      console.log(error);
+    }
+
+    setLoading(false);
+  };
+
+  const createNewThreshold = async () => {
+    setLoading(true);
+    const provider = getProvider();
+    const program = new Program(project, projectProgramID, provider);
+
+    const projectId = selectedProject;
+
+    const [projectPDA, projectBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("project"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        program.programId
+      );
+
+    const currentTimestamp = new Date().getTime() / 1000;
+
+    try {
+      const tx = await program.methods
+        .changeThresholdProposal(
+          projectBump,
+          projectId,
+          formValues.newThreshold,
+          currentTimestamp
+        )
+        .accounts({
+          baseAccount: projectPDA,
+          authority: wallet,
+        })
+        .rpc();
+
+      console.log(tx);
+    } catch (error) {
+      console.log(error);
+    }
+
+    setLoading(false);
+  };
+
+  const createNewTimeout = async () => {
+    setLoading(true);
+    const provider = getProvider();
+    const program = new Program(project, projectProgramID, provider);
+
+    const projectId = selectedProject;
+
+    const [projectPDA, projectBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("project"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        program.programId
+      );
+
+    const timeLimit = parseInt(formValues.newTimeout) * 60 * 60 * 24;
+
+    try {
+      const tx = await program.methods
+        .changeTimeLimitProposal(projectBump, projectId, timeLimit)
+        .accounts({
+          baseAccount: projectPDA,
+          authority: wallet,
+        })
+        .rpc();
+
+      console.log(tx);
+    } catch (error) {
+      console.log(error);
+    }
+
+    setLoading(false);
+  };
+
+  const depositTokens = async () => {
+    setLoading(true);
+    const provider = getProvider();
+    const projectProgram = new Program(project, projectProgramID, provider);
+    const generalProgram = new Program(general, generalProgramID, provider);
+
+    const projectId = selectedProject;
+
+    const [projectPDA, projectBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("project"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        projectProgram.programId
+      );
+
+    const [projectPoolPDA, projectPoolBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("pool"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        projectProgram.programId
+      );
+
+    const [generalPDA, generalBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from("general1")],
+        generalProgram.programId
+      );
+
+    const USDCMint = new PublicKey(tokenMint);
+
+    let userTokenAccount = await spl.getAssociatedTokenAddress(
+      USDCMint,
+      wallet,
+      false,
+      spl.TOKEN_PROGRAM_ID,
+      spl.ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    let adminTokenAccount = await spl.getAssociatedTokenAddress(
+      USDCMint,
+      new PublicKey(options[2].value),
+      false,
+      spl.TOKEN_PROGRAM_ID,
+      spl.ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    try {
+      const tx = await projectProgram.methods
+        .depositFunds(
+          projectId,
+          projectBump,
+          projectPoolBump,
+          generalBump,
+          formValues.depositTokens
+        )
+        .accounts({
+          baseAccount: projectPDA,
+          generalAccount: generalPDA,
+          projectPoolAccount: projectPoolPDA,
+          tokenMint: USDCMint,
+          authority: wallet,
+          walletToWithdrawFrom: userTokenAccount,
+          adminTokenWallet: adminTokenAccount,
+          generalProgram: generalProgram.programId,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          tokenProgram: spl.TOKEN_PROGRAM_ID,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .rpc();
+
+      console.log(tx);
+    } catch (error) {
+      console.log(error);
+    }
+
+    setLoading(false);
+  };
+
+  const createNewTransfer = async () => {
+    setLoading(true);
+    const provider = getProvider();
+    const program = new Program(project, projectProgramID, provider);
+
+    const projectId = selectedProject;
+
+    const [projectPDA, projectBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("project"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        program.programId
+      );
+
+    const USDCMint = new PublicKey(tokenMint);
+
+    let recieverTokenAccount = await spl.getAssociatedTokenAddress(
+      USDCMint,
+      new PublicKey(formValues.reciever),
+      false,
+      spl.TOKEN_PROGRAM_ID,
+      spl.ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    try {
+      const tx = await program.methods
+        .transferAmountProposal(
+          projectBump,
+          projectId,
+          formValues.transferTokens,
+          recieverTokenAccount
+        )
+        .accounts({
+          baseAccount: projectPDA,
+          authority: wallet,
+        })
+        .rpc();
+
+      console.log(tx);
+    } catch (error) {
+      console.log(error);
+    }
+
+    setLoading(false);
+  };
+
+  const signTransfer = async () => {
+    setLoading(true);
+    const provider = getProvider();
+    const projectProgram = new Program(project, projectProgramID, provider);
+    const generalProgram = new Program(general, generalProgramID, provider);
+
+    const projectId = selectedProject;
+
+    const [projectPDA, projectBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("project"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        projectProgram.programId
+      );
+
+    const [projectPoolPDA, projectPoolBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from("pool"),
+          Buffer.from(projectId.substring(0, 18)),
+          Buffer.from(projectId.substring(18, 36)),
+        ],
+        projectProgram.programId
+      );
+
+    const [generalPDA, generalBump] =
+      await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from("general1")],
+        generalProgram.programId
+      );
+
+    const USDCMint = new PublicKey(tokenMint);
+
+    let recieverTokenAccount = await spl.getAssociatedTokenAddress(
+      USDCMint,
+      new PublicKey(formValues.reciever),
+      false,
+      spl.TOKEN_PROGRAM_ID,
+      spl.ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+
+
+    try {
+      const tx = await projectProgram.methods
+        .signTransfer(generalBump, projectBump, projectPoolBump, projectId)
+        .accounts({
+          baseAccount: projectPDA,
+          generalAccount: generalPDA,
+          projectPoolAccount: projectPoolPDA,
+          tokenMint: USDCMint,
+          authority: wallet,
+          walletToWithdrawFrom: recieverTokenAccount,
+          generalProgram: generalProgram.programId,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          tokenProgram: spl.TOKEN_PROGRAM_ID,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .rpc();
+
+      console.log(tx);
+    } catch (error) {
+      console.log(error);
+    }
+
+    setLoading(false);
+  };
+
+  const sign = async (key) => {
     setLoading(true);
     const provider = getProvider();
     const program = new Program(project, projectProgramID, provider);
@@ -458,7 +808,7 @@ function Stake() {
 
     try {
       const tx = await program.methods
-        .signProposal(projectBump, projectId, "add")
+        .signProposal(projectBump, projectId, key)
         .accounts({
           baseAccount: projectPDA,
           authority: wallet,
@@ -492,15 +842,12 @@ function Stake() {
         projectProgram.programId
       );
 
-    let projects = true;
-
     try {
       const state = await projectProgram.account.projectParameter.fetch(
         projectPDA
       );
       setJobError(true);
     } catch (error) {
-      projects = false;
       setJobError(false);
       console.log(error);
     }
@@ -546,10 +893,70 @@ function Stake() {
           <Header as="h2" dividing>
             Staking Program
           </Header>
+          <Message color="teal">
+            <Message.Header>Total Tokens: {totalTokens} </Message.Header>
+          </Message>
+          {votersPresent && (
+            <Message color="teal">
+              <Message.Header>Total voters: {voters.length} </Message.Header>
+              <Message.Header>Threshold: {allData.threshold} </Message.Header>
+              <Message.Header>
+                Time out: {Math.round(allData.timeLimit / (60 * 60 * 24))} days{" "}
+              </Message.Header>
+              <Message.Header>
+                Staked Amount: {allData.stakedAmount}{" "}
+              </Message.Header>
+            </Message>
+          )}
+          {selectedPresent &&
+            (!jobError ? (
+              <Message color="teal">
+                <Message.Header>
+                  The project with id: {selectedProject} has not been created
+                  yet
+                </Message.Header>
+              </Message>
+            ) : !applicationError ? (
+              <Message color="teal">
+                <Message.Header>
+                  The transfer with id: {selectedTransfer} has not been created
+                  yet but the project has been created
+                </Message.Header>
+              </Message>
+            ) : (
+              <Message color="teal">
+                <Message.Header>
+                  Both project and transfer have been created, you can stake now
+                </Message.Header>
+              </Message>
+            ))}
+          <Header as="h2">Signatories List</Header>
+          {votersPresent &&
+            voters.map((val, index) => {
+              return <p>{val.key.toBase58()}</p>;
+            })}
+          <Header as="h2">Projects</Header>
+          {data.projects.map((project, index) => {
+            return (
+              <List ordered>
+                <List.Header
+                  as="a"
+                  onClick={() => selectApplication(project.id)}
+                >
+                  {project.id}
+                </List.Header>
+              </List>
+            );
+          })}
+          <br />
           <Button onClick={initializeGeneral}>
             Initialize General Program
           </Button>
-          <Button onClick={createProject} primary>Create Project</Button>
+          <Button onClick={createProject} primary>
+            Create Project
+          </Button>
+          <br />
+          <br />
           <Form>
             <Form.Field>
               <label>Enter Threshold</label>
@@ -579,7 +986,8 @@ function Stake() {
                 Add Initial Signatories
               </Button>
             )}
-            <br /><br />
+            <br />
+            <br />
             <Form.Field>
               <label>Add signatories</label>
               <Dropdown
@@ -592,16 +1000,15 @@ function Stake() {
               />
             </Form.Field>
             {loading ? (
-              <Button loading>
-                Add Signatories
-              </Button>
+              <Button loading>Add Signatories</Button>
             ) : (
-              <Button onClick={createAddSignatory}>
-                Add Signatories
-              </Button>
+              <Button onClick={createAddSignatory}>Add Signatories</Button>
             )}
-            <Button onClick={sign} primary>Sign for adding</Button>
-            <br /><br />
+            <Button onClick={() => sign("add")} primary>
+              Sign for adding
+            </Button>
+            <br />
+            <br />
             <Form.Field>
               <label>Remove signatories</label>
               <Dropdown
@@ -614,16 +1021,17 @@ function Stake() {
               />
             </Form.Field>
             {loading ? (
-              <Button loading>
-                Remove Signatories
-              </Button>
+              <Button loading>Remove Signatories</Button>
             ) : (
-              <Button onClick={createAddSignatory}>
+              <Button onClick={createDeleteSignatory}>
                 Remove Signatories
               </Button>
             )}
-            <Button onClick={sign} primary>Sign for removing</Button>
-            <br /><br />
+            <Button onClick={() => sign("delete")} primary>
+              Sign for removing
+            </Button>
+            <br />
+            <br />
             <Form.Field>
               <label>Change Threshold</label>
               <input
@@ -635,16 +1043,17 @@ function Stake() {
               />
             </Form.Field>
             {loading ? (
-              <Button loading>
-                Create new threshold proposal
-              </Button>
+              <Button loading>Create new threshold proposal</Button>
             ) : (
-              <Button onClick={createAddSignatory}>
+              <Button onClick={createNewThreshold}>
                 Create new threshold proposal
               </Button>
             )}
-            <Button onClick={sign} primary>Sign for changing threshold</Button>
-            <br /><br />
+            <Button onClick={() => sign("change threshold")} primary>
+              Sign for changing threshold
+            </Button>
+            <br />
+            <br />
             <Form.Field>
               <label>Change Timeout</label>
               <input
@@ -656,16 +1065,17 @@ function Stake() {
               />
             </Form.Field>
             {loading ? (
-              <Button loading>
-                Create new Timeout proposal
-              </Button>
+              <Button loading>Create new Timeout proposal</Button>
             ) : (
-              <Button onClick={createAddSignatory}>
+              <Button onClick={createNewTimeout}>
                 Create new Timeout proposal
               </Button>
             )}
-            <Button onClick={sign} primary>Sign for changing Timeout</Button>
-            <br /><br />
+            <Button onClick={() => sign("change time limit")} primary>
+              Sign for changing Timeout
+            </Button>
+            <br />
+            <br />
             <Form.Field>
               <label>Enter amount of tokens to mint</label>
               <input
@@ -687,14 +1097,35 @@ function Stake() {
             )}
             <br />
             <br />
+            <Form.Field>
+              <label>Enter amount of tokens to deposit</label>
+              <input
+                placeholder="Enter amount of tokens"
+                type="number"
+                name="depositTokens"
+                value={formValues.depositTokens}
+                onChange={handleChange}
+              />
+            </Form.Field>
+            {loading ? (
+              <Button loading primary>
+                Deposit Tokens
+              </Button>
+            ) : (
+              <Button onClick={depositTokens} primary>
+                Deposit Tokens
+              </Button>
+            )}
+            <br />
+            <br />
             <Header as="h2">Make a transfer</Header>
             <Form.Field>
               <label>Enter amount of tokens to Transfer</label>
               <input
                 placeholder="Enter amount of tokens"
                 type="number"
-                name="depositTokens"
-                value={formValues.depositTokens}
+                name="transferTokens"
+                value={formValues.transferTokens}
                 onChange={handleChange}
               />
             </Form.Field>
@@ -708,63 +1139,18 @@ function Stake() {
               />
             </Form.Field>
             {loading ? (
-              <Button loading>
-                Create new Transfer proposal
-              </Button>
+              <Button loading>Create new Transfer proposal</Button>
             ) : (
-              <Button onClick={createAddSignatory}>
+              <Button onClick={createNewTransfer}>
                 Create new Transfer proposal
               </Button>
             )}
-            <Button onClick={sign} primary>Sign for changing Transfer</Button>
-            <br /><br />
-            <Message color="teal">
-              <Message.Header>Total Tokens: {totalTokens} </Message.Header>
-            </Message>
-            {votersPresent && (
-              <Message color="teal">
-                <Message.Header>Total voters: {voters.length} </Message.Header>
-              </Message>
-            )}
-            {selectedPresent &&
-              (!jobError ? (
-                <Message color="teal">
-                  <Message.Header>
-                    The project with id: {selectedProject} has not been created
-                    yet
-                  </Message.Header>
-                </Message>
-              ) : !applicationError ? (
-                <Message color="teal">
-                  <Message.Header>
-                    The transfer with id: {selectedTransfer} has not been
-                    created yet but the project has been created
-                  </Message.Header>
-                </Message>
-              ) : (
-                <Message color="teal">
-                  <Message.Header>
-                    Both project and transfer have been created, you can stake
-                    now
-                  </Message.Header>
-                </Message>
-              ))}
+            <Button onClick={signTransfer} primary>
+              Sign for changing Transfer
+            </Button>
+            <br />
+            <br />
           </Form>
-          <Header as="h2">Signatories List</Header>
-          {votersPresent &&
-            voters.map((val, index) => {
-              return <p>{val.key.toBase58()}</p>;
-            })}
-          <Header as="h2">Projects</Header>
-          {data.projects.map((project, index) => {
-            return (
-              <List ordered>
-                <List.Header as="a" onClick={() => selectApplication(project.id)} >{project.id}</List.Header>
-              </List>
-            );
-          })}
-          <br />
-          <br />
         </Segment>
       </div>
     </div>
