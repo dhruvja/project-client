@@ -920,6 +920,48 @@ function Stake(props) {
   return (
     <div>
       <Vaultbar connection={connected} wallet={wallet} />
+      <Modal
+      basic
+      onClose={() => setError({state: false, message: ""})}
+      open={error.state}
+      size='small'
+    >
+      <Header icon>
+        <Icon name='close' />
+        Error
+      </Header>
+      <Modal.Content>
+        <p>
+          Error {error.message}
+        </p>
+      </Modal.Content>
+      <Modal.Actions>
+        <Button color='red' inverted onClick={() => setError({state: false, message: ""})}>
+          <Icon name='checkmark' /> close
+        </Button>
+      </Modal.Actions>
+    </Modal>
+    <Modal
+      basic
+      onClose={() => setSuccess({state: false, message: ""})}
+      open={success.state}
+      size='small'
+    >
+      <Header icon>
+        <Icon name='checkmark' />
+        Success
+      </Header>
+      <Modal.Content>
+        <p>
+          Success {success.message}
+        </p>
+      </Modal.Content>
+      <Modal.Actions>
+        <Button color='green' inverted onClick={() => setSuccess({state: false, message: ""})}>
+          <Icon name='checkmark' /> close
+        </Button>
+      </Modal.Actions>
+    </Modal>
       <Header as="h1">Staking</Header>
       <div className="content">
         <Segment className="content leftAlign">
