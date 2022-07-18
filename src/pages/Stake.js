@@ -96,7 +96,7 @@ const newSigs = [
   },
 ];
 
-function Stake() {
+function Stake(props) {
   const [quizzes, setQuizzes] = useState([]);
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -127,6 +127,14 @@ function Stake() {
   const [jobError, setJobError] = useState(true);
   const [applicationError, setApplicationError] = useState(true);
   const [allData, setAllData] = useState({});
+  const [error, setError] = useState({
+    state: false,
+    message: ""
+  });
+  const [success, setSuccess] = useState({
+    state: false,
+    message: ""
+  });
 
   // const {sendTransaction} = useWallet();
 
@@ -185,6 +193,8 @@ function Stake() {
       // await getVoters();
     };
     window.addEventListener("load", onLoad);
+    console.log(props.match.params.projectId)
+    selectApplication(props.match.params.projectId);
 
     return () => window.removeEventListener("load", onLoad);
   }, []);
@@ -781,8 +791,31 @@ function Stake() {
         })
         .rpc();
 
+        setSuccess({
+          state: true,
+          message: "You have Successfully signed the transfer"
+        });
+  
+        setError({
+          state: false,
+          message: ""
+        });
+
       console.log(tx);
     } catch (error) {
+
+      const err = error.errorLogs[0].split("Error Message")
+
+      setSuccess({
+        state: false,
+        message: ""
+      });
+
+      setError({
+        state: true,
+        message: err[1]
+      });
+
       console.log(error);
     }
 
@@ -815,8 +848,30 @@ function Stake() {
         })
         .rpc();
       console.log(tx);
+      setSuccess({
+        state: true,
+        message: "You have Successfully signed"
+      });
+
+      setError({
+        state: false,
+        message: ""
+      });
     } catch (error) {
-      console.log(error);
+
+      const err = error.errorLogs[0].split("Error Message")
+
+      setSuccess({
+        state: false,
+        message: ""
+      });
+
+      setError({
+        state: true,
+        message: err[1]
+      });
+      console.log(Object.keys(error));
+      console.log(error.errorLogs[0])
     }
 
     await getVoters(selectedProject);
@@ -864,29 +919,7 @@ function Stake() {
 
   return (
     <div>
-      <Modal
-        basic
-        onClose={() => setInitialise(false)}
-        open={initialise}
-        size="small"
-      >
-        {" "}
-        <Header icon>
-          <Icon name="archive" />
-          Initialization
-        </Header>
-        <Modal.Content>
-          <p>
-            Please click the button to do one time initiazation of the account.
-          </p>
-        </Modal.Content>
-        <Modal.Actions>
-          <Button color="green" inverted>
-            <Icon name="checkmark" /> Initialise
-          </Button>
-        </Modal.Actions>
-      </Modal>
-      <Vaultbar connection={connected} />
+      <Vaultbar connection={connected} wallet={wallet} />
       <Header as="h1">Staking</Header>
       <div className="content">
         <Segment className="content leftAlign">
@@ -896,6 +929,12 @@ function Stake() {
           <Message color="teal">
             <Message.Header>Total Tokens: {totalTokens} </Message.Header>
           </Message>
+          {success.state && ( <Message success>
+            <Message.Header>{success.message}</Message.Header>
+          </Message>)}
+          {error.state && ( <Message error>
+            <Message.Header>Error {error.message}</Message.Header>
+          </Message>)}
           {votersPresent && (
             <Message color="teal">
               <Message.Header>Total voters: {voters.length} </Message.Header>

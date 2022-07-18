@@ -77,6 +77,8 @@ function Vaultbar(props) {
                 <Icon name="circle" color="red" onClick={connectToWeb3} />
               )}
               {props.connection ? "Connected" : "Not Connected"}
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              {props.connection ? props.wallet.toString() : ""}
             </Menu.Item>
           </Menu.Menu>
         </Menu>
