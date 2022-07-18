@@ -1348,7 +1348,7 @@ function Stake(props) {
             <br />
             <br />
             <Form.Field>
-              <label>Change Timeout</label>
+              <label>Change Timeout (in days)</label>
               <input
                 placeholder="change Timeout"
                 type="number"
@@ -1391,7 +1391,7 @@ function Stake(props) {
             <br />
             <br />
             <Form.Field>
-              <label>Enter amount of tokens to deposit to project wallet</label>
+              <label>Add tokens to project wallet</label>
               <input
                 placeholder="Enter amount of tokens"
                 type="number"
