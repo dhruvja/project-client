@@ -141,6 +141,7 @@ function Stake(props) {
     message: "",
   });
   const [sigs, setSigs] = useState([]);
+  const [adminBalance, setAdminBalance] = useState(0);
 
   // const {sendTransaction} = useWallet();
 
@@ -164,10 +165,20 @@ function Stake(props) {
       spl.ASSOCIATED_TOKEN_PROGRAM_ID
     );
 
+    let adminTokenAccount = await spl.getAssociatedTokenAddress(
+      tokenMintKey,
+      new PublicKey(options[2].value),
+      false,
+      spl.TOKEN_PROGRAM_ID,
+      spl.ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
     try {
       const balance = await spl.getAccount(connection, userTokenAccount);
-      console.log(balance.amount.toString());
-      setTotalTokens(balance.amount.toString());
+      const adminBalanceLeft = await spl.getAccount(connection, adminTokenAccount);
+      console.log((parseInt(balance.amount)/1000000).toString());
+      setTotalTokens((parseInt(balance.amount)/1000000).toString());
+      setAdminBalance((parseInt(adminBalanceLeft.amount)/1000000).toString())
     } catch (error) {
       console.log(error);
     }
@@ -266,7 +277,7 @@ function Stake(props) {
         tokenMintKey,
         userTokenAccount,
         baseAccount.publicKey,
-        formValues.mintTokens,
+        formValues.mintTokens*1000000,
         [],
         spl.TOKEN_PROGRAM_ID
       )
@@ -819,7 +830,7 @@ function Stake(props) {
           projectBump,
           projectPoolBump,
           generalBump,
-          formValues.depositTokens
+          formValues.depositTokens*1000000
         )
         .accounts({
           baseAccount: projectPDA,
@@ -897,7 +908,7 @@ function Stake(props) {
         .transferAmountProposal(
           projectBump,
           projectId,
-          formValues.transferTokens,
+          formValues.transferTokens*1000000,
           recieverTokenAccount
         )
         .accounts({
@@ -1178,6 +1189,9 @@ function Stake(props) {
           </Header>
           <Message color="teal">
             <Message.Header>User Wallet Balance: {totalTokens} </Message.Header>
+          </Message>
+          <Message color="teal">
+            <Message.Header>Admin Wallet Balance: {adminBalance} </Message.Header>
           </Message>
           {success.state && (
             <Message success>
