@@ -116,7 +116,7 @@ function Stake(props) {
     newTimeout: "",
     percentTransfer: "",
     newSigs: "",
-    initialSigs: ""
+    initialSigs: "",
   });
   const [totalTokens, setTotalTokens] = useState(0);
   const [initialSignatories, setInitialSignatories] = useState([]);
@@ -140,6 +140,7 @@ function Stake(props) {
     state: false,
     message: "",
   });
+  const [sigs, setSigs] = useState([]);
 
   // const {sendTransaction} = useWallet();
 
@@ -219,6 +220,19 @@ function Stake(props) {
       );
 
     const state = await program.account.projectParameter.fetch(projectPDA);
+
+    let x = state.signatories;
+
+    let y = x.map((val, index) => {
+      console.log(val.key);
+      return {
+        key: val.key.toBase58(),
+        text: val.key.toBase58(),
+        value: val.key.toBase58(),
+      };
+    });
+
+    setSigs(y);
 
     setVoters(state.signatories);
     setAllData(state);
@@ -387,7 +401,9 @@ function Stake(props) {
       await getDetails(selectedTransfer, selectedProject);
       setSuccess({
         state: true,
-        message: "You have successfully created a project with project id " + projectId,
+        message:
+          "You have successfully created a project with project id " +
+          projectId,
       });
 
       setError({
@@ -433,7 +449,13 @@ function Stake(props) {
 
     console.log(typeof thresholdInNumber);
 
-    const sigs = formValues.initialSigs.split(',');
+    const sigs = formValues.initialSigs.split(",");
+    if (sigs.length == 1) sigs[0] = new PublicKey(formValues.initialSigs);
+    else {
+      for (let i = 0; i < sigs.length; i++) {
+        sigs[i] = new PublicKey(sigs[i]);
+      }
+    }
 
     // initialSignatories.find((val, index) => {
     //   sigs[index] = new PublicKey(val);
@@ -506,15 +528,15 @@ function Stake(props) {
         program.programId
       );
 
-    const sigs = formValues.newSigs.split(',');
-
-
-    for (let i = 0; i < sigs.length; i++) {
-      sigs[i] = new PublicKey(sigs[i]);
+    const sigs = formValues.newSigs.split(",");
+    if (sigs.length == 1) sigs[0] = new PublicKey(formValues.newSigs);
+    else {
+      for (let i = 0; i < sigs.length; i++) {
+        sigs[i] = new PublicKey(sigs[i]);
+      }
     }
 
     console.log(sigs);
-
 
     try {
       const tx = await program.methods
@@ -1169,7 +1191,9 @@ function Stake(props) {
           )}
           {votersPresent && (
             <Message color="teal">
-              <Message.Header>Total Signatories: {voters.length} </Message.Header>
+              <Message.Header>
+                Total Signatories: {voters.length}{" "}
+              </Message.Header>
               <Message.Header>Threshold: {allData.threshold} </Message.Header>
               <Message.Header>
                 Time out: {Math.round(allData.timeLimit / (60 * 60 * 24))} days{" "}
@@ -1285,7 +1309,7 @@ function Stake(props) {
                 fluid
                 multiple
                 selection
-                options={newSigs}
+                options={sigs}
                 onChange={(e, { value }) => setOldSignatories(value)}
               />
             </Form.Field>
