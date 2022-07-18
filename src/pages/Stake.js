@@ -1370,7 +1370,7 @@ function Stake(props) {
             <br />
             <br />
             <Form.Field>
-              <label>Enter amount of tokens to mint</label>
+              <label>Add tokens to current user wallet</label>
               <input
                 placeholder="Enter amount of tokens"
                 type="number"
@@ -1381,17 +1381,17 @@ function Stake(props) {
             </Form.Field>
             {loading ? (
               <Button loading primary>
-                Mint Tokens
+                Airdrop Tokens
               </Button>
             ) : (
               <Button onClick={mintTokenToAccount} primary>
-                Mint Tokens
+                Airdrop Tokens
               </Button>
             )}
             <br />
             <br />
             <Form.Field>
-              <label>Enter amount of tokens to deposit</label>
+              <label>Enter amount of tokens to deposit to project wallet</label>
               <input
                 placeholder="Enter amount of tokens"
                 type="number"
@@ -1402,11 +1402,11 @@ function Stake(props) {
             </Form.Field>
             {loading ? (
               <Button loading primary>
-                Deposit Tokens
+                Deposit Tokens to project wallet
               </Button>
             ) : (
               <Button onClick={depositTokens} primary>
-                Deposit Tokens
+                Deposit Tokens to project wallet
               </Button>
             )}
             <br />
