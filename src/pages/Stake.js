@@ -129,11 +129,11 @@ function Stake(props) {
   const [allData, setAllData] = useState({});
   const [error, setError] = useState({
     state: false,
-    message: ""
+    message: "",
   });
   const [success, setSuccess] = useState({
     state: false,
-    message: ""
+    message: "",
   });
 
   // const {sendTransaction} = useWallet();
@@ -193,7 +193,7 @@ function Stake(props) {
       // await getVoters();
     };
     window.addEventListener("load", onLoad);
-    console.log(props.match.params.projectId)
+    console.log(props.match.params.projectId);
     selectApplication(props.match.params.projectId);
 
     return () => window.removeEventListener("load", onLoad);
@@ -772,8 +772,6 @@ function Stake(props) {
       spl.ASSOCIATED_TOKEN_PROGRAM_ID
     );
 
-
-
     try {
       const tx = await projectProgram.methods
         .signTransfer(generalBump, projectBump, projectPoolBump, projectId)
@@ -791,29 +789,28 @@ function Stake(props) {
         })
         .rpc();
 
-        setSuccess({
-          state: true,
-          message: "You have Successfully signed the transfer"
-        });
-  
-        setError({
-          state: false,
-          message: ""
-        });
+      setSuccess({
+        state: true,
+        message: "You have Successfully signed the transfer",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
 
       console.log(tx);
     } catch (error) {
-
-      const err = error.errorLogs[0].split("Error Message")
+      const err = error.errorLogs[0].split("Error Message");
 
       setSuccess({
         state: false,
-        message: ""
+        message: "",
       });
 
       setError({
         state: true,
-        message: err[1]
+        message: err[1],
       });
 
       console.log(error);
@@ -850,28 +847,27 @@ function Stake(props) {
       console.log(tx);
       setSuccess({
         state: true,
-        message: "You have Successfully signed"
+        message: "You have Successfully signed",
       });
 
       setError({
         state: false,
-        message: ""
+        message: "",
       });
     } catch (error) {
-
-      const err = error.errorLogs[0].split("Error Message")
+      const err = error.errorLogs[0].split("Error Message");
 
       setSuccess({
         state: false,
-        message: ""
+        message: "",
       });
 
       setError({
         state: true,
-        message: err[1]
+        message: err[1],
       });
       console.log(Object.keys(error));
-      console.log(error.errorLogs[0])
+      console.log(error.errorLogs[0]);
     }
 
     await getVoters(selectedProject);
@@ -921,62 +917,70 @@ function Stake(props) {
     <div>
       <Vaultbar connection={connected} wallet={wallet} />
       <Modal
-      basic
-      onClose={() => setError({state: false, message: ""})}
-      open={error.state}
-      size='small'
-    >
-      <Header icon>
-        <Icon name='close' />
-        Error
-      </Header>
-      <Modal.Content>
-        <p>
-          Error {error.message}
-        </p>
-      </Modal.Content>
-      <Modal.Actions>
-        <Button color='red' inverted onClick={() => setError({state: false, message: ""})}>
-          <Icon name='checkmark' /> close
-        </Button>
-      </Modal.Actions>
-    </Modal>
-    <Modal
-      basic
-      onClose={() => setSuccess({state: false, message: ""})}
-      open={success.state}
-      size='small'
-    >
-      <Header icon>
-        <Icon name='checkmark' />
-        Success
-      </Header>
-      <Modal.Content>
-        <p>
-          Success {success.message}
-        </p>
-      </Modal.Content>
-      <Modal.Actions>
-        <Button color='green' inverted onClick={() => setSuccess({state: false, message: ""})}>
-          <Icon name='checkmark' /> close
-        </Button>
-      </Modal.Actions>
-    </Modal>
+        basic
+        onClose={() => setError({ state: false, message: "" })}
+        open={error.state}
+        size="small"
+      >
+        <Header icon>
+          <Icon name="close" />
+          Error
+        </Header>
+        <Modal.Content>
+          <p>Error {error.message}</p>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button
+            color="red"
+            inverted
+            onClick={() => setError({ state: false, message: "" })}
+          >
+            <Icon name="checkmark" /> close
+          </Button>
+        </Modal.Actions>
+      </Modal>
+      <Modal
+        basic
+        onClose={() => setSuccess({ state: false, message: "" })}
+        open={success.state}
+        size="small"
+      >
+        <Header icon>
+          <Icon name="checkmark" />
+          Success
+        </Header>
+        <Modal.Content>
+          <p>Success {success.message}</p>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button
+            color="green"
+            inverted
+            onClick={() => setSuccess({ state: false, message: "" })}
+          >
+            <Icon name="checkmark" /> close
+          </Button>
+        </Modal.Actions>
+      </Modal>
       <Header as="h1">Staking</Header>
       <div className="content">
         <Segment className="content leftAlign">
           <Header as="h2" dividing>
-            Staking Program
+            Project: {props.match.params.projectId}
           </Header>
           <Message color="teal">
             <Message.Header>Total Tokens: {totalTokens} </Message.Header>
           </Message>
-          {success.state && ( <Message success>
-            <Message.Header>{success.message}</Message.Header>
-          </Message>)}
-          {error.state && ( <Message error>
-            <Message.Header>Error {error.message}</Message.Header>
-          </Message>)}
+          {success.state && (
+            <Message success>
+              <Message.Header>{success.message}</Message.Header>
+            </Message>
+          )}
+          {error.state && (
+            <Message error>
+              <Message.Header>Error {error.message}</Message.Header>
+            </Message>
+          )}
           {votersPresent && (
             <Message color="teal">
               <Message.Header>Total voters: {voters.length} </Message.Header>
@@ -989,7 +993,7 @@ function Stake(props) {
               </Message.Header>
             </Message>
           )}
-          {selectedPresent &&
+          {/* {selectedPresent &&
             (!jobError ? (
               <Message color="teal">
                 <Message.Header>
@@ -1010,29 +1014,20 @@ function Stake(props) {
                   Both project and transfer have been created, you can stake now
                 </Message.Header>
               </Message>
-            ))}
+            ))} */}
+          {/* <Header as="h2">Current Project</Header>
+          <p>{props.match.params.projectId}</p> */}
           <Header as="h2">Signatories List</Header>
           {votersPresent &&
             voters.map((val, index) => {
               return <p>{val.key.toBase58()}</p>;
             })}
-          <Header as="h2">Projects</Header>
-          {data.projects.map((project, index) => {
-            return (
-              <List ordered>
-                <List.Header
-                  as="a"
-                  onClick={() => selectApplication(project.id)}
-                >
-                  {project.id}
-                </List.Header>
-              </List>
-            );
-          })}
+
           <br />
           <Button onClick={initializeGeneral}>
             Initialize General Program
           </Button>
+          <br /><br />
           <Button onClick={createProject} primary>
             Create Project
           </Button>
