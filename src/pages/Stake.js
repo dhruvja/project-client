@@ -114,7 +114,9 @@ function Stake(props) {
     reciever: "",
     newThreshold: "",
     newTimeout: "",
-    percentTransfer: ""
+    percentTransfer: "",
+    newSigs: "",
+    initialSigs: ""
   });
   const [totalTokens, setTotalTokens] = useState(0);
   const [initialSignatories, setInitialSignatories] = useState([]);
@@ -431,7 +433,7 @@ function Stake(props) {
 
     console.log(typeof thresholdInNumber);
 
-    let sigs = initialSignatories;
+    const sigs = formValues.initialSigs.split(',');
 
     // initialSignatories.find((val, index) => {
     //   sigs[index] = new PublicKey(val);
@@ -468,6 +470,7 @@ function Stake(props) {
       });
       console.log(tx);
     } catch (error) {
+      console.log(error);
       const err = error.errorLogs[0].split("Error Message");
       setSuccess({
         state: false,
@@ -479,7 +482,6 @@ function Stake(props) {
         message: err[1],
       });
       console.log(error.errorLogs[0]);
-      console.log(error);
     }
 
     await getVoters(selectedProject);
@@ -504,13 +506,15 @@ function Stake(props) {
         program.programId
       );
 
-    let sigs = newSignatories;
+    const sigs = formValues.newSigs.split(',');
 
-    for (let i = 0; i < newSignatories.length; i++) {
-      sigs[i] = new PublicKey(newSignatories[i]);
+
+    for (let i = 0; i < sigs.length; i++) {
+      sigs[i] = new PublicKey(sigs[i]);
     }
 
     console.log(sigs);
+
 
     try {
       const tx = await program.methods
@@ -534,6 +538,8 @@ function Stake(props) {
 
       console.log(tx);
     } catch (error) {
+      console.log(error);
+
       const err = error.errorLogs[0].split("Error Message");
       setSuccess({
         state: false,
@@ -545,7 +551,6 @@ function Stake(props) {
         message: err[1],
       });
       console.log(error.errorLogs[0]);
-      console.log(error);
     }
 
     setLoading(false);
@@ -1150,7 +1155,7 @@ function Stake(props) {
             Project: {props.match.params.projectId}
           </Header>
           <Message color="teal">
-            <Message.Header>Total Tokens: {totalTokens} </Message.Header>
+            <Message.Header>User Wallet Balance: {totalTokens} </Message.Header>
           </Message>
           {success.state && (
             <Message success>
@@ -1164,13 +1169,13 @@ function Stake(props) {
           )}
           {votersPresent && (
             <Message color="teal">
-              <Message.Header>Total voters: {voters.length} </Message.Header>
+              <Message.Header>Total Signatories: {voters.length} </Message.Header>
               <Message.Header>Threshold: {allData.threshold} </Message.Header>
               <Message.Header>
                 Time out: {Math.round(allData.timeLimit / (60 * 60 * 24))} days{" "}
               </Message.Header>
               <Message.Header>
-                Staked Amount: {allData.stakedAmount}{" "}
+                Project Wallet Balance: {allData.stakedAmount}{" "}
               </Message.Header>
             </Message>
           )}
@@ -1236,13 +1241,11 @@ function Stake(props) {
                 onChange={(e) => setThreshold(e.target.value)}
               />
               <label>Add Initial Signatories</label>
-              <Dropdown
-                placeholder="Skills"
-                fluid
-                multiple
-                selection
-                options={options}
-                onChange={(e, { value }) => setInitialSignatories(value)}
+              <input
+                placeholder="add signatories seperated by comma"
+                name="initialSigs"
+                value={formValues.initialSigs}
+                onChange={handleChange}
               />
             </Form.Field>
             {loading ? (
@@ -1258,13 +1261,11 @@ function Stake(props) {
             <br />
             <Form.Field>
               <label>Add signatories</label>
-              <Dropdown
-                placeholder="New Signatories"
-                fluid
-                multiple
-                selection
-                options={newSigs}
-                onChange={(e, { value }) => setNewSignatories(value)}
+              <input
+                placeholder="add signatories seperated by comma"
+                name="newSigs"
+                value={formValues.newSigs}
+                onChange={handleChange}
               />
             </Form.Field>
             {loading ? (
