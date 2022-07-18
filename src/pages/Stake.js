@@ -721,7 +721,7 @@ function Stake(props) {
         program.programId
       );
 
-    const timeLimit = parseInt(formValues.newTimeout) * 60 * 60 * 24;
+    const timeLimit = parseInt(formValues.newTimeout);
 
     try {
       const tx = await program.methods
@@ -1196,7 +1196,7 @@ function Stake(props) {
               </Message.Header>
               <Message.Header>Threshold: {allData.threshold} </Message.Header>
               <Message.Header>
-                Time out: {Math.round(allData.timeLimit / (60 * 60 * 24))} days{" "}
+                Time out: {allData.timeLimit} Seconds{" "}
               </Message.Header>
               <Message.Header>
                 Project Wallet Balance: {allData.stakedAmount}{" "}
@@ -1348,7 +1348,7 @@ function Stake(props) {
             <br />
             <br />
             <Form.Field>
-              <label>Change Timeout (in days)</label>
+              <label>Change Timeout (in seconds): Min(600 sec), Max(30 days)</label>
               <input
                 placeholder="change Timeout"
                 type="number"
