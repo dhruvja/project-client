@@ -35,6 +35,8 @@ import * as spl from "@solana/spl-token";
 import tokenMint from "./mint.json";
 import * as anchor from "@project-serum/anchor";
 import data from "./data.json";
+import { v4 as uuidv4 } from "uuid";
+
 // import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 
 const bs58 = require("bs58");
@@ -63,17 +65,17 @@ const connection = new Connection(network, opts.preflightCommitment);
 const options = [
   {
     key: "bob",
-    text: "bob",
+    text: "7pTRjd48ZshMNevo5XnqrKXRrBLMdhFh36gJFcrvMjKh",
     value: "7pTRjd48ZshMNevo5XnqrKXRrBLMdhFh36gJFcrvMjKh",
   },
   {
     key: "cas",
-    text: "cas",
+    text: "5MPpntM4apPSHWJhLX8xaNnWTd8zB8iGBUgzLL8arvvC",
     value: "5MPpntM4apPSHWJhLX8xaNnWTd8zB8iGBUgzLL8arvvC",
   },
   {
     key: "admin",
-    text: "admin",
+    text: "GiUWC6Bx55syrpvxeiCZj9fADLyTEvv2e8kVqneuBVBg",
     value: "GiUWC6Bx55syrpvxeiCZj9fADLyTEvv2e8kVqneuBVBg",
   },
 ];
@@ -81,17 +83,17 @@ const options = [
 const newSigs = [
   {
     key: "wallet 1",
-    text: "wallet 1",
+    text: "AGdZqUDzmXZYMkmv17d2MevwsNyNYkLjUsbq19eZcawg",
     value: "AGdZqUDzmXZYMkmv17d2MevwsNyNYkLjUsbq19eZcawg",
   },
   {
     key: "wallet 2",
-    text: "wallet 2",
+    text: "E5YMfUvCghB6Ynjx1kAREceoUdGn4SjATp9ohzKwua6J",
     value: "E5YMfUvCghB6Ynjx1kAREceoUdGn4SjATp9ohzKwua6J",
   },
   {
     key: "wallet 3",
-    text: "wallet 3",
+    text: "4nBkhiwMHrgBeeWrEH85rquhBZMUatmTjgcAkmJUcjoK",
     value: "4nBkhiwMHrgBeeWrEH85rquhBZMUatmTjgcAkmJUcjoK",
   },
 ];
@@ -112,6 +114,7 @@ function Stake(props) {
     reciever: "",
     newThreshold: "",
     newTimeout: "",
+    percentTransfer: ""
   });
   const [totalTokens, setTotalTokens] = useState(0);
   const [initialSignatories, setInitialSignatories] = useState([]);
@@ -318,6 +321,15 @@ function Stake(props) {
           systemProgram: anchor.web3.SystemProgram.programId,
         })
         .rpc();
+      setSuccess({
+        state: true,
+        message: "You have successfully created a general program",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
     } catch (error) {
       const state = await program.account.generalParameter.fetch(generalPDA);
       console.log(state.tokenMint, state.authority);
@@ -329,7 +341,7 @@ function Stake(props) {
     const program = new Program(project, projectProgramID, provider);
     const percentTransfer = 2;
 
-    const projectId = selectedProject;
+    let projectId = uuidv4();
 
     const [projectPDA, projectBump] =
       await anchor.web3.PublicKey.findProgramAddress(
@@ -355,7 +367,7 @@ function Stake(props) {
 
     try {
       const tx = await program.methods
-        .initialize(projectId, percentTransfer)
+        .initialize(projectId, formValues.percentTransfer)
         .accounts({
           baseAccount: projectPDA,
           projectPoolAccount: projectPoolPDA,
@@ -371,7 +383,27 @@ function Stake(props) {
       const state = await program.account.projectParameter.fetch(projectPDA);
       console.log(state.authority.toBase58());
       await getDetails(selectedTransfer, selectedProject);
+      setSuccess({
+        state: true,
+        message: "You have successfully created a project with project id " + projectId,
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
     } catch (error) {
+      const err = error.errorLogs[0].split("Error Message");
+      setSuccess({
+        state: false,
+        message: "",
+      });
+
+      setError({
+        state: true,
+        message: err[1],
+      });
+      console.log(error.errorLogs[0]);
       console.log(error);
     }
   };
@@ -424,8 +456,29 @@ function Stake(props) {
           baseAccount: projectPDA,
         })
         .rpc();
+      setSuccess({
+        state: true,
+        message:
+          "You have successfully added the initial signatories and set the threshold",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
       console.log(tx);
     } catch (error) {
+      const err = error.errorLogs[0].split("Error Message");
+      setSuccess({
+        state: false,
+        message: "",
+      });
+
+      setError({
+        state: true,
+        message: err[1],
+      });
+      console.log(error.errorLogs[0]);
       console.log(error);
     }
 
@@ -468,8 +521,30 @@ function Stake(props) {
         })
         .rpc();
 
+      setSuccess({
+        state: true,
+        message:
+          "You have successfully created a proposal to add the signatories",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
+
       console.log(tx);
     } catch (error) {
+      const err = error.errorLogs[0].split("Error Message");
+      setSuccess({
+        state: false,
+        message: "",
+      });
+
+      setError({
+        state: true,
+        message: err[1],
+      });
+      console.log(error.errorLogs[0]);
       console.log(error);
     }
 
@@ -510,8 +585,30 @@ function Stake(props) {
         })
         .rpc();
 
+      setSuccess({
+        state: true,
+        message:
+          "You have successfully created a proposal to delete the signatories",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
+
       console.log(tx);
     } catch (error) {
+      const err = error.errorLogs[0].split("Error Message");
+      setSuccess({
+        state: false,
+        message: "",
+      });
+
+      setError({
+        state: true,
+        message: err[1],
+      });
+      console.log(error.errorLogs[0]);
       console.log(error);
     }
 
@@ -550,9 +647,30 @@ function Stake(props) {
           authority: wallet,
         })
         .rpc();
+      setSuccess({
+        state: true,
+        message:
+          "You have successfully created a proposal for changing the threshold",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
 
       console.log(tx);
     } catch (error) {
+      const err = error.errorLogs[0].split("Error Message");
+      setSuccess({
+        state: false,
+        message: "",
+      });
+
+      setError({
+        state: true,
+        message: err[1],
+      });
+      console.log(error.errorLogs[0]);
       console.log(error);
     }
 
@@ -587,8 +705,28 @@ function Stake(props) {
         })
         .rpc();
 
+      setSuccess({
+        state: true,
+        message: "You have deposited successfully",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
       console.log(tx);
     } catch (error) {
+      const err = error.errorLogs[0].split("Error Message");
+      setSuccess({
+        state: false,
+        message: "",
+      });
+
+      setError({
+        state: true,
+        message: err[1],
+      });
+      console.log(error.errorLogs[0]);
       console.log(error);
     }
 
@@ -671,8 +809,29 @@ function Stake(props) {
         })
         .rpc();
 
+      setSuccess({
+        state: true,
+        message: "You have deposited successfully",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
+
       console.log(tx);
     } catch (error) {
+      const err = error.errorLogs[0].split("Error Message");
+      setSuccess({
+        state: false,
+        message: "",
+      });
+
+      setError({
+        state: true,
+        message: err[1],
+      });
+      console.log(error.errorLogs[0]);
       console.log(error);
     }
 
@@ -720,8 +879,30 @@ function Stake(props) {
         })
         .rpc();
 
+      setSuccess({
+        state: true,
+        message: "You have created a transfer successfully",
+      });
+
+      setError({
+        state: false,
+        message: "",
+      });
+
       console.log(tx);
     } catch (error) {
+      const err = error.errorLogs[0].split("Error Message");
+
+      setSuccess({
+        state: false,
+        message: "",
+      });
+
+      setError({
+        state: true,
+        message: err[1],
+      });
+      console.log(error.errorLogs[0]);
       console.log(error);
     }
 
@@ -962,7 +1143,7 @@ function Stake(props) {
           </Button>
         </Modal.Actions>
       </Modal>
-      <Header as="h1">Staking</Header>
+      <Header as="h1">Project</Header>
       <div className="content">
         <Segment className="content leftAlign">
           <Header as="h2" dividing>
@@ -1027,13 +1208,24 @@ function Stake(props) {
           <Button onClick={initializeGeneral}>
             Initialize General Program
           </Button>
-          <br /><br />
-          <Button onClick={createProject} primary>
-            Create Project
-          </Button>
           <br />
           <br />
           <Form>
+            <Form.Field>
+              <label>Enter Percent of amount to transfer</label>
+              <input
+                placeholder="Enter the percent"
+                type="number"
+                name="percentTransfer"
+                value={formValues.percentTransfer}
+                onChange={handleChange}
+              />
+            </Form.Field>
+            <Button onClick={createProject} primary>
+              Create Project
+            </Button>
+            <br />
+            <br />
             <Form.Field>
               <label>Enter Threshold</label>
               <input
