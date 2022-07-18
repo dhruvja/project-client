@@ -64,7 +64,7 @@ function Vaultbar(props) {
           </Link> */}
           {/* <Link to="/register"> */}
           <Menu.Item
-            name="Solana Staking"
+            name="Solana DAO Management"
             active
             onClick={handleItemClick}
           />

@@ -245,6 +245,8 @@ function Stake(props) {
 
     setSigs(y);
 
+    console.log(state.transferAmount.reciever.toBase58());
+
     setVoters(state.signatories);
     setAllData(state);
     setVoterPresent(true);
@@ -1213,7 +1215,7 @@ function Stake(props) {
                 Time out: {allData.timeLimit} Seconds{" "}
               </Message.Header>
               <Message.Header>
-                Project Wallet Balance: {allData.stakedAmount}{" "}
+                Project Wallet Balance: {parseInt(allData.stakedAmount)/1000000}{" "}
               </Message.Header>
             </Message>
           )}
