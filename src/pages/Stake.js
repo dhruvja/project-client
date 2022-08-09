@@ -439,7 +439,6 @@ function Stake(props) {
       console.log(tx);
       const state = await program.account.projectParameter.fetch(projectPDA);
       console.log(state.authority.toBase58());
-      await getDetails(selectedProject);
       setSuccess({
         state: true,
         message:
@@ -1124,39 +1123,9 @@ function Stake(props) {
     setLoading(false);
   };
 
-  const getDetails = async (jobId) => {
-    const provider = getProvider();
-    const projectProgram = new Program(project, projectProgramID, provider);
-
-    const projectId = jobId;
-
-    console.log(projectId);
-
-    const [projectPDA, projectBump] =
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from("project"),
-          Buffer.from(projectId.substring(0, 18)),
-          Buffer.from(projectId.substring(18, 36)),
-        ],
-        projectProgram.programId
-      );
-
-    try {
-      const state = await projectProgram.account.projectParameter.fetch(
-        projectPDA
-      );
-      setJobError(true);
-    } catch (error) {
-      setJobError(false);
-      console.log(error);
-    }
-  };
-
   const selectApplication = async (jobId) => {
     setSelectedProject(jobId);
     setSelectedPresent(true);
-    await getDetails(jobId);
     await getVoters(jobId);
 
     console.log(jobId);
