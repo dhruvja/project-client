@@ -127,7 +127,6 @@ function Stake(props) {
   const [votersPresent, setVoterPresent] = useState(false);
   const [voters, setVoters] = useState([]);
   const [selectedPresent, setSelectedPresent] = useState(false);
-  const [selectedTransfer, setSelectedTransfer] = useState("");
   const [selectedProject, setSelectedProject] = useState("");
   const [jobError, setJobError] = useState(true);
   const [applicationError, setApplicationError] = useState(true);
@@ -153,6 +152,34 @@ function Stake(props) {
     );
     return provider;
   };
+
+  const getPhantomProvider = () => {
+    if ('phantom' in window) {
+      const provider = window.phantom?.solana;
+  
+      if (provider?.isPhantom) {
+        return provider;
+      }
+    }
+  
+    window.open('https://phantom.app/', '_blank');
+  }
+
+  const provider = getPhantomProvider();
+
+  useEffect(() => {
+    provider.on("accountChanged", (pubkey) => {
+      if(pubkey) {
+        console.log(pubkey.toBase58())
+        setWallet(pubkey);
+        setConnected(true);
+        getBalance(pubkey);
+      }
+      else {
+        console.log("some error occured")
+      }
+    })
+  },[provider])
 
   const getBalance = async (wallet) => {
     const tokenMintKey = new anchor.web3.PublicKey(tokenMint);
@@ -180,6 +207,7 @@ function Stake(props) {
       setTotalTokens((parseInt(balance.amount)/1000000).toString());
       setAdminBalance((parseInt(adminBalanceLeft.amount)/1000000).toString())
     } catch (error) {
+      setTotalTokens(0);
       console.log(error);
     }
   };
@@ -411,7 +439,7 @@ function Stake(props) {
       console.log(tx);
       const state = await program.account.projectParameter.fetch(projectPDA);
       console.log(state.authority.toBase58());
-      await getDetails(selectedTransfer, selectedProject);
+      await getDetails(selectedProject);
       setSuccess({
         state: true,
         message:
@@ -1022,6 +1050,7 @@ function Stake(props) {
 
       console.log(tx);
     } catch (error) {
+      console.log(error);
       const err = error.errorLogs[0].split("Error Message");
 
       setSuccess({
@@ -1034,7 +1063,6 @@ function Stake(props) {
         message: err[1],
       });
 
-      console.log(error);
     }
 
     setLoading(false);
@@ -1455,7 +1483,7 @@ function Stake(props) {
               </Button>
             )}
             <Button onClick={signTransfer} primary>
-              Sign for changing Transfer
+              Sign Transfer
             </Button>
             <br />
             <br />
