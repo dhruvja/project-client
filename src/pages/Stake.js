@@ -36,6 +36,7 @@ import tokenMint from "./mint.json";
 import * as anchor from "@project-serum/anchor";
 import data from "./data.json";
 import { v4 as uuidv4 } from "uuid";
+import { base58_to_binary } from 'base58-js'
 
 // import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 
@@ -154,34 +155,35 @@ function Stake(props) {
   };
 
   const getPhantomProvider = () => {
-    if ('phantom' in window) {
+    if ("phantom" in window) {
       const provider = window.phantom?.solana;
-  
+
       if (provider?.isPhantom) {
         return provider;
       }
     }
-  
-    window.open('https://phantom.app/', '_blank');
-  }
+
+    window.open("https://phantom.app/", "_blank");
+  };
 
   const provider = getPhantomProvider();
 
   useEffect(() => {
     provider.on("accountChanged", (pubkey) => {
-      if(pubkey) {
-        console.log(pubkey.toBase58())
+      if (pubkey) {
+        
+        console.log(pubkey.toBase58());
         setWallet(pubkey);
         setConnected(true);
         getBalance(pubkey);
+      } else {
+        console.log("some error occured");
       }
-      else {
-        console.log("some error occured")
-      }
-    })
-  },[provider])
+    });
+  }, [provider]);
 
   const getBalance = async (wallet) => {
+    
     const tokenMintKey = new anchor.web3.PublicKey(tokenMint);
 
     let userTokenAccount = await spl.getAssociatedTokenAddress(
@@ -202,10 +204,13 @@ function Stake(props) {
 
     try {
       const balance = await spl.getAccount(connection, userTokenAccount);
-      const adminBalanceLeft = await spl.getAccount(connection, adminTokenAccount);
-      console.log((parseInt(balance.amount)/1000000).toString());
-      setTotalTokens((parseInt(balance.amount)/1000000).toString());
-      setAdminBalance((parseInt(adminBalanceLeft.amount)/1000000).toString())
+      const adminBalanceLeft = await spl.getAccount(
+        connection,
+        adminTokenAccount
+      );
+      console.log((parseInt(balance.amount) / 1000000).toString());
+      setTotalTokens((parseInt(balance.amount) / 1000000).toString());
+      setAdminBalance((parseInt(adminBalanceLeft.amount) / 1000000).toString());
     } catch (error) {
       setTotalTokens(0);
       console.log(error);
@@ -214,16 +219,24 @@ function Stake(props) {
 
   const checkSolanaWalletExists = async () => {
     const { solana } = window;
+    
 
     if (solana && solana.isPhantom) {
       try {
         const response = await solana.connect({ onlyIfTrusted: true });
+        console.log("string in hex", Buffer.from(response.publicKey).toString('hex'))
         console.log(response.publicKey.toString());
         setWallet(response.publicKey);
         setConnected(true);
         getBalance(response.publicKey);
+        
       } catch (error) {
         const response = await solana.connect();
+        console.log(response.publicKey.toString('hex'))
+        const bytes = base58_to_binary(response.publicKey.toString())
+        // const bytes = Uint8Array.from(atob(Buffer.from(response.publicKey.toString(), 'base64')), (c) => c.charCodeAt(0))
+        console.log(bytes)
+        console.log(Buffer.from(bytes.buffer,bytes.byteOffset,bytes.byteLength).toString('hex'))
         console.log(response.publicKey.toString());
         setWallet(response.publicKey);
         setConnected(true);
@@ -307,7 +320,7 @@ function Stake(props) {
         tokenMintKey,
         userTokenAccount,
         baseAccount.publicKey,
-        formValues.mintTokens*1000000,
+        formValues.mintTokens * 1000000,
         [],
         spl.TOKEN_PROGRAM_ID
       )
@@ -859,7 +872,7 @@ function Stake(props) {
           projectBump,
           projectPoolBump,
           generalBump,
-          formValues.depositTokens*1000000
+          formValues.depositTokens * 1000000
         )
         .accounts({
           baseAccount: projectPDA,
@@ -937,7 +950,7 @@ function Stake(props) {
         .transferAmountProposal(
           projectBump,
           projectId,
-          formValues.transferTokens*1000000,
+          formValues.transferTokens * 1000000,
           recieverTokenAccount
         )
         .accounts({
@@ -1061,7 +1074,6 @@ function Stake(props) {
         state: true,
         message: err[1],
       });
-
     }
 
     setLoading(false);
@@ -1190,7 +1202,9 @@ function Stake(props) {
             <Message.Header>User Wallet Balance: {totalTokens} </Message.Header>
           </Message>
           <Message color="teal">
-            <Message.Header>Admin Wallet Balance: {adminBalance} </Message.Header>
+            <Message.Header>
+              Admin Wallet Balance: {adminBalance}{" "}
+            </Message.Header>
           </Message>
           {success.state && (
             <Message success>
@@ -1212,7 +1226,8 @@ function Stake(props) {
                 Time out: {allData.timeLimit} Seconds{" "}
               </Message.Header>
               <Message.Header>
-                Project Wallet Balance: {parseInt(allData.stakedAmount)/1000000}{" "}
+                Project Wallet Balance:{" "}
+                {parseInt(allData.stakedAmount) / 1000000}{" "}
               </Message.Header>
             </Message>
           )}
@@ -1361,7 +1376,9 @@ function Stake(props) {
             <br />
             <br />
             <Form.Field>
-              <label>Change Timeout (in seconds): Min(600 sec), Max(30 days)</label>
+              <label>
+                Change Timeout (in seconds): Min(600 sec), Max(30 days)
+              </label>
               <input
                 placeholder="change Timeout"
                 type="number"

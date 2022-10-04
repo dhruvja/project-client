@@ -254,6 +254,31 @@
       ]
     },
     {
+      "name": "shutdownProposal",
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "baseBump",
+          "type": "u8"
+        },
+        {
+          "name": "projectId",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "signProposal",
       "accounts": [
         {
@@ -516,6 +541,12 @@
             }
           },
           {
+            "name": "shutdown",
+            "type": {
+              "defined": "Shutdown"
+            }
+          },
+          {
             "name": "threshold",
             "type": "u32"
           },
@@ -536,16 +567,16 @@
             "type": "u8"
           },
           {
-            "name": "shutdown",
-            "type": "bool"
-          },
-          {
             "name": "lastReducedThreshold",
             "type": "i32"
           },
           {
             "name": "approval",
             "type": "u32"
+          },
+          {
+            "name": "tokenMint",
+            "type": "publicKey"
           }
         ]
       }
@@ -711,6 +742,26 @@
           }
         ]
       }
+    },
+    {
+      "name": "Shutdown",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "votes",
+            "type": "u32"
+          }
+        ]
+      }
     }
   ],
   "errors": [
@@ -721,53 +772,88 @@
     },
     {
       "code": 6001,
+      "name": "InsufficientBalance",
+      "msg": "Insufficient balance in project wallet, could not create transfer proposal."
+    },
+    {
+      "code": 6002,
+      "name": "SignatoryAlreadyExists",
+      "msg": "Cannot add new signatory, Signatory already exists"
+    },
+    {
+      "code": 6003,
+      "name": "CannotRemoveSignatory",
+      "msg": "Only one signatory is left, cannot remove until more signatories are added"
+    },
+    {
+      "code": 6004,
+      "name": "ThresholdIsMore",
+      "msg": "Threshold is more than the signatories, cannot change it"
+    },
+    {
+      "code": 6005,
+      "name": "TimeoutLow",
+      "msg": "The minimum timeout is supposed to be 10 minutes, enter more than that"
+    },
+    {
+      "code": 6006,
+      "name": "TimeoutMore",
+      "msg": "The maximum timeout is supposed to be 30 minutes, enter less than that"
+    },
+    {
+      "code": 6007,
       "name": "RepeatedSignature",
       "msg": "You have already signed"
     },
     {
-      "code": 6002,
+      "code": 6008,
       "name": "NoProposalCreated",
       "msg": "There is no proposal to sign"
     },
     {
-      "code": 6003,
+      "code": 6009,
       "name": "ProposalInProgress",
       "msg": "There is already a proposal in progress"
     },
     {
-      "code": 6004,
+      "code": 6010,
       "name": "SignatoryNotFound",
       "msg": "This signatory does not exist"
     },
     {
-      "code": 6005,
+      "code": 6011,
       "name": "InvalidTimePeriod",
       "msg": "The project is still alive"
     },
     {
-      "code": 6006,
+      "code": 6012,
       "name": "MinimumThresholdReached",
       "msg": "The threshold is 1 which cannot be reduced further"
     },
     {
-      "code": 6007,
+      "code": 6013,
       "name": "ShutDownCannotBeActivated",
       "msg": "A minimum of 90 days from the last transaction should pass until the shut down can be activated"
     },
     {
-      "code": 6008,
+      "code": 6014,
       "name": "MinimumTimeNotPassed",
       "msg": "A minimum of 30 days has to be passed to further reduce the threshold"
     },
     {
-      "code": 6009,
+      "code": 6015,
       "name": "InvalidReciever",
       "msg": "The reciever does not match"
     },
     {
-      "code": 6010,
+      "code": 6016,
       "name": "CannotTransferDueToLowThreshold",
       "msg": "The transfer cannot be completed if there is only 1 signatory, add more signatories and you can complete the transfer"
+    },
+    {
+      "code": 6017,
+      "name": "EmptyFundsBeforeClosing",
+      "msg": "The shutdown can be done only when the project wallet doesnt have any funds "
     }
   ],
   "metadata": {
